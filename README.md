@@ -157,7 +157,7 @@ A **real-world scenario** considered is a patient with a pacemaker traveling int
     tpm2_pcrread
 
 - You can see SHA1,SHA256,SHA384,SHA512 PCR values.
-   ![image alt]()
+   ![image alt](https://github.com/teja-tp0472/Secure-Remote-IoMT-device-using-Software-TPM/blob/4d64539b90c202a2c854c084bfb6ace6c4d2e103/Screenshot%202025-01-28%20221233.png)
 - Now let's generate the quote and validate it by using below commands
 
 13. **Generate the Quote and validate it without PCR Extension**
