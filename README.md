@@ -117,7 +117,9 @@ A **real-world scenario** considered is a patient with a pacemaker traveling int
   StandardOutput=syslog
   ExecStart=/usr/local/sbin/tpm2-abrmd –tcti=”libtss2-tcti-mssim.so.0:host=127.0.0.1,port=232
   User=tss [Install]
-  WantedBy=multi-user.target 
+  WantedBy=multi-user.target
+  
+![image alt](https://github.com/teja-tp0472/Secure-Remote-IoMT-device-using-Software-TPM/blob/18a6ecaba7901aa67f1ab996a4e7c4019fc0af98/Screenshot%202025-01-28%20220618.png)
 
 - Check if server is running or not, if not running, restart it by using the below commands
   ```bash
@@ -155,7 +157,7 @@ A **real-world scenario** considered is a patient with a pacemaker traveling int
     tpm2_pcrread
 
 - You can see SHA1,SHA256,SHA384,SHA512 PCR values.
-  <image>
+   ![image alt]()
 - Now let's generate the quote and validate it by using below commands
 
 13. **Generate the Quote and validate it without PCR Extension**
