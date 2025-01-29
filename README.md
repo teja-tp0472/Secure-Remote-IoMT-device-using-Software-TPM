@@ -57,9 +57,8 @@ A **real-world scenario** considered is a patient with a pacemaker traveling int
 4. **Setup TPM Server**
    ```bash
    sudo vim /lib/systemd/system/tpm-server.service
-
-Once after entering in file, copy paste below code to start the server
-   ```bash
+- Once after entering in file, copy paste below code to start the server
+  ```bash
   [Unit]
   Description=TPM2.0 Simulator Server daemon 
   Before=tpm2-abrmd.service 
@@ -70,4 +69,12 @@ Once after entering in file, copy paste below code to start the server
   [Install] 
   WantedBy=multi-user.target
 
-
+5. **Start the daemon - tpm server**
+   ```bash
+   systemctl daemon-reload
+   systemctl start tpm-server.service
+   service tpm-server status
+   
+6. **Install CA certificates**
+   ```bash
+   sudo apt install ca-certificates
