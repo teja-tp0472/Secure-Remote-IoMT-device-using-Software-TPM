@@ -1,4 +1,4 @@
-# Secure Remote IoMT Device Handshaking for Smart Healthcare - Doctors' Dilemma Problem
+# Secure Remote IoMT Device using Software TPM
 
 ## Overview  
 This project focuses on securely accessing patient monitoring devices in the **Internet of Medical Things (IoMT)** ecosystem. The key objective is to ensure **secure remote authentication and verification** of these devices using **Trusted Platform Module (TPM) and Physical Unclonable Functions (PUF)**.  
@@ -78,3 +78,122 @@ A **real-world scenario** considered is a patient with a pacemaker traveling int
 6. **Install CA certificates**
    ```bash
    sudo apt install ca-certificates
+   
+- Once server start it looks like this
+  
+  ![image alt](https://github.com/teja-tp0472/Secure-Remote-IoMT-device-using-Software-TPM/blob/abeb2e12daa63adce6dc2dd8a56076d636288114/Screenshot%202025-01-28%20215606.png)
+
+7. **Install TPM2-TSS**
+   ```bash
+   sudo apt-get install libjson-c-dev
+   wget https://github.com/tpm2-software/tpm2-tss/releases/download/3.1.0/tpm2-tss-3.1.0.tar.gz
+   tar -xzvf tpm2-tss-3.1.0.tar.gz cd tpm2-tss-3.1.0/
+   ./configure
+   sudo make install
+   sudo ldconfig
+
+8. **Install TPM2-ABRMD**
+   ```bash
+   wget https://github.com/tpm2-software/tpm2-abrmd/releases/download/2.3.1/tpm2- abrmd-2.3.1.tar.gz
+   sudo useradd –system –user-group tss
+   tar -xzvf tpm2-abrmd-2.3.1.tar.gz
+   cd tpm2-abrmd-2.3.1
+   sudo ldconfig
+   ./configure –with-dbuspolicydir=/etc/dbus-1/system.d –with systemdsystemunitdir=/usr/lib/systemd/system
+   sudo make install
+   sudo cp /usr/local/share/dbus-1/system-services/com.intel.tss2.Tabrmd.service /usr/share/dbus- 1/system-services/
+   sudo pkill -HUP dbus-daemon
+   sudo vim /lib/systemd/system/tpm2-abrmd.service
+   
+- Once the file is open overwrite the text with the below text
+  ```bash
+  [Unit]
+  Descript=TPM2 Access Broker and Resource Management Daemon
+  [Service]
+  Type=dbus
+  Restart=always
+  RestartSec=5
+  BusName=com.intel.tss2.Tabrmd
+  StandardOutput=syslog
+  ExecStart=/usr/local/sbin/tpm2-abrmd –tcti=”libtss2-tcti-mssim.so.0:host=127.0.0.1,port=232
+  User=tss [Install]
+  WantedBy=multi-user.target 
+
+- Check if server is running or not, if not running, restart it by using the below commands
+  ```bash
+  sudo apt-get install ibmswtpm2
+  sudo tpm-server &
+  sudo nano /usr/local/lib/systemd/system/tpm2-abrmd.service
+  Sudo systemctl daemon-reload
+  Sudo systemctl start tpm2-abrmd.service
+  Sudo service tpm2-abrmd status
+
+9. **Install TPM2-TSS Engine**
+    ```bash
+    wget https://github.com/tpm2-software/tpm2-tss-engine/releases/download/v1.1.0/tpm2-tss-engine-1.1.0.tar.gz
+    ll /usr/lib/x8664 − linux − gnu/engines − 1.1/
+    opensslengine − t – c
+
+10. **Install TPM2-TOOLS**
+    ```bash
+    Wget https://github.com/tpm2-software/tpm2-tools.git
+    cd tpm2-tools
+    git checkout 5.4
+    ./bootstrap
+    ./configure
+    make -j$(nproc)
+    sudo make install
+    sudo ldconfig
+
+11. **Random Number Generation**
+- Now the whole set is ready and even the servers are running, so let's check for the random numbers generation
+  ```bash
+  openssl rand -engine tpm2tss -hex 10
+
+12. **Generating Initial PCR values**
+    ``bash
+    tpm2_pcrread
+
+- You can see SHA1,SHA256,SHA384,SHA512 PCR values.
+  <image>
+- Now let's generate the quote and validate it by using below commands
+
+13. **Generate the Quote and validate it without PCR Extension**
+    ```bash
+    tpm2_createprimary -C e -c primary.ctx
+    tpm2_createek -c ek.ctx -G rsa -u ek.pub
+    tpm2_create -C primary.ctx -G rsa -u ak.pub -r ak.priv -c ak.ctx.
+    tpm2_readpublic -c ak.ctx -o ak.pub
+    tpm2_pcrread sha256:0,1,2,3
+    tpm2_quote -c ak.ctx -l sha256:0,1,2,3 -q <nounce_value> -m quote.msg -s quote.sig -o pcr_values.out
+
+- Here you can specify any values as you like eg:1231231231231231
+- Now the Quote is generated, need to validate it
+  
+   ```bash
+   tpm2_checkquote -u ak.pub -m quote.msg -s quote.sig -f pcr_values.out -q <nounce_value>
+
+- Now lets try with PCR extension
+
+14. **Generate the Quote and validate it PCR Extension**
+     ```bash
+     tpm2_createprimary -C e -c primary.ctx
+     tpm2_createek -c ek.ctx -G rsa -u ek.pub
+     tpm2_create -C primary.ctx -G rsa -u ak.pub -r ak.priv -c ak.ctx.
+     tpm2_readpublic -c ak.ctx -o ak.pub
+     
+- Here we generate the PCR Extension
+     ```bash
+  echo -n "example" | sha256sum | awk '{print $1}'
+  tpm2_pcrextend 2:sha256=50d858c8b18cbff2d5c74e4dba7d3b8b30e41dc35d0026b9c5e26b48d386c78f
+  tpm2_pcrread sha256:0,1,2,3
+  tpm2_quote -c ak.ctx -l sha256:0,1,2,3 -q <nounce_value> -m quote.msg -s quote.sig -o pcr_values.out
+  
+- (here you can specify any values as you like eg:1231231231231231 )
+- Now the Quote is generated, need to validate it
+   ```bash
+   tpm2_checkquote -u ak.pub -m quote.msg -s quote.sig -f pcr_values.out -q <nounce_value>
+
+
+  
+
