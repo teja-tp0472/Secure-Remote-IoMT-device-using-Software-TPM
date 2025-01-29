@@ -59,7 +59,7 @@ A **real-world scenario** considered is a patient with a pacemaker traveling int
    sudo vim /lib/systemd/system/tpm-server.service
 
 Once after entering in file, copy paste below code to start the server
-  ```bash
+   ```bash
   [Unit]
   Description=TPM2.0 Simulator Server daemon 
   Before=tpm2-abrmd.service 
@@ -69,4 +69,5 @@ Once after entering in file, copy paste below code to start the server
   Envi- ronment=PATH=/usr/bin:/usr/local/bin 
   [Install] 
   WantedBy=multi-user.target
+
 
